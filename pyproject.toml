@@ -1,0 +1,6 @@
+[project]
+name = "webmanifest-lint"
+version = "0.1.0"
+description = "Validate Progressive Web App manifest JSON for missing names, invalid display modes, malformed icon declarations, and inconsistent start_url and scope paths."
+requires-python = ">=3.10"
+license = "MIT"

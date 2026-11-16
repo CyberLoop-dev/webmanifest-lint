@@ -20,7 +20,7 @@ def lint(manifest):
     if not manifest.get("start_url"):
         issues.append(("warning", "start_url is missing; browsers may use a default"))
     display = manifest.get("display")
-    if display and display not in DISPLAY_MODES:
+    if display and (not isinstance(display, str) or display not in DISPLAY_MODES):
         issues.append(("error", f"unsupported display mode: {display}"))
     icons = manifest.get("icons", [])
     if not isinstance(icons, list):
@@ -30,21 +30,26 @@ def lint(manifest):
         if not isinstance(icon, dict):
             issues.append(("error", f"icons[{index}] must be an object"))
             continue
-        if not icon.get("src"):
-            issues.append(("error", f"icons[{index}] is missing src"))
+        if not isinstance(icon.get("src"), str) or not icon.get("src"):
+            issues.append(("error", f"icons[{index}] is missing a valid src"))
         sizes = icon.get("sizes")
         if sizes and sizes != "any":
+            if not isinstance(sizes, str):
+                issues.append(("error", f"icons[{index}] sizes must be a string"))
+                continue
             for size in sizes.split():
                 if not re.fullmatch(r"\d+x\d+", size):
                     issues.append(("warning", f"icons[{index}] has an invalid size: {size}"))
     start = manifest.get("start_url")
     scope = manifest.get("scope")
     for field, value in (("start_url", start), ("scope", scope)):
-        if value:
+        if value and not isinstance(value, str):
+            issues.append(("error", f"{field} must be a string"))
+    if isinstance(start, str) and isinstance(scope, str) and start and scope:
+        for field, value in (("start_url", start), ("scope", scope)):
             parsed = urlparse(value)
             if parsed.scheme or parsed.netloc:
                 issues.append(("warning", f"{field} is absolute; verify it matches the deployed origin"))
-    if start and scope:
         start_path = urlparse(urljoin("/", start)).path
         scope_path = urlparse(urljoin("/", scope)).path
         if not start_path.startswith(scope_path):

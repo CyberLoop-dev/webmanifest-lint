@@ -18,6 +18,10 @@ class ManifestTests(unittest.TestCase):
     def test_requires_a_name(self):
         self.assertTrue(any("provide name" in m for _, m in lint({})))
 
+    def test_invalid_icon_sizes_do_not_crash(self):
+        issues = lint({"name":"Sample","icons":[{"src":"/icon.png","sizes":["192x192"]}]})
+        self.assertTrue(any("sizes must be a string" in message for _, message in issues))
+
 
 if __name__ == "__main__":
     unittest.main()
